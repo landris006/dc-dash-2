@@ -1,11 +1,13 @@
 import { db } from '@/lib/db';
 import { getServerSession } from 'next-auth';
-import { redirect } from 'next/navigation';
+import { RedirectType, redirect } from 'next/navigation';
+import Image from 'next/image';
+import Link from 'next/link';
 
-export default async function Home() {
+export default async function Servers() {
   const session = await getServerSession();
   if (!session) {
-    return redirect('/');
+    return redirect('/', RedirectType.replace);
   }
 
   const guilds = await db.guild.findMany({
@@ -20,14 +22,33 @@ export default async function Home() {
     },
   });
 
+  if (guilds.length === 1) {
+    return redirect(`/servers/${guilds[0].id}`, RedirectType.replace);
+  }
+
   return (
-    <main>
-      <h1>Servers</h1>
-      <ul>
-        {guilds.map((guild) => (
-          <li key={guild.id}>{guild.name}</li>
-        ))}
-      </ul>
+    <main className="flex min-h-screen items-center justify-center">
+      <div className="card card-bordered bg-neutral-700/20">
+        <ul className="card-body">
+          {guilds.length === 0 && (
+            <p>None of the servers you are part of has the bot. :(</p>
+          )}
+          {guilds.map((guild) => (
+            <li key={guild.id}>
+              <Link href={`/servers/${guild.id}`} className="btn btn-neutral">
+                <Image
+                  className="rounded-full"
+                  src={guild.iconUrl ?? ''}
+                  alt="profile picture"
+                  width={30}
+                  height={30}
+                />
+                {guild.name}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </div>
     </main>
   );
 }

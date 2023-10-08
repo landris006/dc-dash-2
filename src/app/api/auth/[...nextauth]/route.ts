@@ -1,13 +1,17 @@
-import NextAuth, { NextAuthOptions } from 'next-auth';
+import NextAuth from 'next-auth';
 import DiscordProvider from 'next-auth/providers/discord';
 
-export const authOptions: NextAuthOptions = {
+const handler = NextAuth({
   providers: [
     DiscordProvider({
+      id: 'discord',
       clientId: process.env.DISCORD_CLIENT_ID!,
       clientSecret: process.env.DISCORD_CLIENT_SECRET!,
     }),
   ],
+  pages: {
+    signIn: '/',
+  },
   callbacks: {
     session: async ({ session, token }) => {
       if (session?.user) {
@@ -25,7 +29,6 @@ export const authOptions: NextAuthOptions = {
   session: {
     strategy: 'jwt',
   },
-};
+});
 
-export const handler = NextAuth(authOptions);
 export { handler as GET, handler as POST };

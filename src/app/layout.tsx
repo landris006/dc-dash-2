@@ -26,7 +26,10 @@ export default async function RootLayout({
   return (
     <html lang="en" className="dark">
       <body
-        className={cn('min-h-screen font-sans antialiased', inter.className)}
+        className={cn(
+          'min-h-screen bg-neutral-900 font-sans antialiased',
+          inter.className,
+        )}
       >
         <SessionProvider session={session}>{children}</SessionProvider>
       </body>
