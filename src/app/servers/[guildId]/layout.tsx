@@ -30,8 +30,9 @@ export default async function ServerLayout({
   }
 
   const isMember = guild.guildMembers.some(
-    (member) => member.userId === session.user.id,
+    (member) => member.user.username === session.user?.name,
   );
+
   if (!isMember) {
     return redirect('/servers');
   }

@@ -6,7 +6,7 @@ import Link from 'next/link';
 
 export default async function Servers() {
   const session = await getServerSession();
-  if (!session) {
+  if (!session?.user?.name) {
     return redirect('/', RedirectType.replace);
   }
 

@@ -3,13 +3,11 @@ import { db } from './db';
 export async function guildMembersWithTotalTime({
   skip,
   take,
-  guild,
+  guildId,
 }: {
   skip?: number;
   take?: number;
-  guild?: {
-    id: string;
-  };
+  guildId?: string;
 }) {
   const members = await db.$queryRaw<
     {
@@ -34,7 +32,7 @@ export async function guildMembersWithTotalTime({
 
   FROM "guild_member"
 
-  WHERE "guild_id" = ${guild?.id ?? 'NOT NULL'}  
+  WHERE "guild_id" = ${guildId ?? 'NOT NULL'}  
   
   ORDER BY "total_time" DESC
 

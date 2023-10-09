@@ -42,7 +42,7 @@ export default function Header({
         <div className="dropdown dropdown-hover">
           <label tabIndex={0} className="btn btn-link p-0">
             <Image
-              src={session.data?.user.image ?? ''}
+              src={session.data?.user?.image ?? ''}
               alt="server image"
               className="rounded-full"
               width={40}
@@ -62,7 +62,7 @@ export default function Header({
         </div>
       </header>
 
-      <div className="flex min-h-screen">
+      <div className="flex h-full">
         <aside
           className={cn(
             'box-content flex w-16 flex-col items-center border-r transition-all',

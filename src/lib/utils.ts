@@ -6,8 +6,6 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function timeToLevel(timeSpent: number) {
-  console.log(timeSpent);
-
   if (timeSpent < 1) {
     return 1;
   }
