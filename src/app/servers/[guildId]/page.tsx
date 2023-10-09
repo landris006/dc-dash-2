@@ -157,7 +157,7 @@ export default async function Server({
                 );
               })}
             </ul>
-            <div className="stat-desc">Activities with highest time spen</div>
+            <div className="stat-desc">Activities by highest time spent</div>
           </div>
         </div>
       </div>
