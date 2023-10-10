@@ -27,8 +27,8 @@ export default async function Server({
     guildId,
   });
 
-  const top3 = await Promise.all(
-    membersWithTime.slice(0, 3).map(async (m) => ({
+  const highestLevelMembers = await Promise.all(
+    membersWithTime.slice(0, 5).map(async (m) => ({
       ...m,
       user: await db.user.findUnique({
         where: {
@@ -73,7 +73,7 @@ export default async function Server({
     .sort((a, b) => b[1] - a[1])
     .map(([name, time]) => ({ name, time }));
 
-  const top3VoiceChannels = await db.voiceChannel.findMany({
+  const topVoiceChannels = await db.voiceChannel.findMany({
     where: {
       guildId: params.guildId,
     },
@@ -89,152 +89,16 @@ export default async function Server({
         _count: 'desc',
       },
     },
-    take: 3,
+    take: 5,
   });
 
-  const top3Activities = timeByActivity.slice(0, 3);
+  const topActivities = timeByActivity.slice(0, 5);
   const totalTimeSpentOnActivities = timeByActivity.reduce((sum, activity) => {
     return sum + activity.time;
   }, 0);
 
   return (
-    <main className="grid w-full grid-cols-1 gap-3 p-3 lg:items-start lg:grid-cols-[auto_1fr]">
-      <div className="flex flex-wrap gap-3 lg:flex-col">
-        <div className="stats w-full shadow lg:max-w-xl">
-          <div className="stat">
-            <div className="stat-title flex items-center pb-1 text-xl text-yellow-500">
-              <CrownIcon className="mr-1 inline-block h-5 w-5" />
-              Leaderboard (top 3)
-            </div>
-            <ul className="stat-value flex flex-col gap-1 overflow-x-hidden">
-              {top3.map((member, i) => {
-                const level = timeToLevel(member.totalTime);
-                const nextLevelTime = levelToTime(level + 1);
-                const progress = Math.round(
-                  ((member.totalTime - levelToTime(level)) / nextLevelTime) *
-                    100,
-                );
-
-                return (
-                  <li
-                    key={member.id}
-                    className={cn(
-                      'btn h-fit flex-nowrap gap-1 py-1 normal-case',
-                      {
-                        'text-4xl text-yellow-500/90':
-                          member.id === top3[0]?.id,
-                        'text-3xl': member.id === top3[1]?.id,
-                        'text-2xl': member.id === top3[2]?.id,
-                      },
-                    )}
-                  >
-                    <span className="inline-block min-w-[2rem]">{i + 1}.</span>{' '}
-                    <Image
-                      src={member.user?.avatarUrl ?? ''}
-                      width={40}
-                      height={40}
-                      className="rounded-full"
-                      alt="profile picture"
-                    />
-                    <span className="overflow-hidden text-ellipsis">
-                      {member.nickname}
-                    </span>
-                    <div
-                      className="radial-progress ml-auto text-[1rem]"
-                      style={{
-                        color: levelToColor(level),
-                        // @ts-ignore
-                        '--value': progress,
-                        '--size': '3rem',
-                      }}
-                    >
-                      {level}
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
-            <div className="stat-desc">Highest level members</div>
-          </div>
-        </div>
-
-        <div className="stats w-full shadow lg:max-w-xl">
-          <div className="stat">
-            <div className="stat-title flex items-center pb-1 text-xl text-teal-400/80">
-              <MixIcon className="mr-1 inline-block h-5 w-5" />
-              Most common activities (top 3)
-            </div>
-            <ul className="stat-value flex flex-col gap-1 overflow-x-hidden">
-              {top3Activities.map((activity, i) => {
-                return (
-                  <li
-                    key={activity.name}
-                    className={cn(
-                      'btn h-fit flex-nowrap gap-1 py-1 normal-case',
-                      {
-                        'text-4xl text-teal-400/80':
-                          activity.name === top3Activities[0]?.name,
-                        'text-3xl': activity.name === top3Activities[1]?.name,
-                        'text-2xl': activity.name === top3Activities[2]?.name,
-                      },
-                    )}
-                  >
-                    <span className="inline-block min-w-[2rem]">{i + 1}.</span>{' '}
-                    <span className="overflow-hidden text-ellipsis">
-                      {activity.name}
-                    </span>
-                    <span className="ml-auto min-w-[90px] text-[1rem] text-default">
-                      <ClockIcon className="mr-1 inline h-6 w-6" />
-                      {Math.round(activity.time / (1000 * 60 * 60))} hrs
-                    </span>
-                  </li>
-                );
-              })}
-            </ul>
-            <div className="stat-desc">Activities by highest time spent</div>
-          </div>
-        </div>
-
-        <div className="stats w-full shadow lg:max-w-xl">
-          <div className="stat">
-            <div className="stat-title flex items-center pb-1 text-xl text-red-400/80">
-              <PhoneIcon className="mr-1 inline-block h-5 w-5" />
-              Favourite voice channels
-            </div>
-            <ul className="stat-value flex flex-col gap-1 overflow-x-hidden">
-              {top3VoiceChannels.map((channel, i) => {
-                return (
-                  <li
-                    key={channel.name}
-                    className={cn(
-                      'btn h-fit flex-nowrap gap-1 py-1 normal-case',
-                      {
-                        'text-4xl text-red-400/80':
-                          channel.name === top3VoiceChannels[0]?.name,
-                        'text-3xl': channel.name === top3VoiceChannels[1]?.name,
-                        'text-2xl': channel.name === top3VoiceChannels[2]?.name,
-                      },
-                    )}
-                  >
-                    <span className="inline-block min-w-[2rem]">{i + 1}.</span>{' '}
-                    <span className="overflow-hidden text-ellipsis">
-                      {channel.name}
-                    </span>
-                    <span className="ml-auto min-w-[90px] text-[1rem] text-default">
-                      <PhoneIcon className="mr-1 inline h-5 w-5" />
-                      {channel._count.connections}
-                    </span>
-                  </li>
-                );
-              })}
-            </ul>
-            <div className="stat-desc">
-              Voice channels with the most connections
-            </div>
-          </div>
-        </div>
-      </div>
-
+    <main className="flex w-full flex-col gap-3 p-3">
       <div className="stats flex-1 grid-flow-row grid-cols-[repeat(auto-fit,minmax(18rem,1fr))] overflow-hidden">
         <Stat
           title="Members"
@@ -300,6 +164,141 @@ export default async function Server({
           icon={<FaceIcon className="mr-1 inline-block h-5 w-5" />}
           value={newestMember.nickname}
         />
+      </div>
+
+      <div className="grid grid-flow-row grid-cols-[repeat(auto-fit,minmax(16rem,1fr))] gap-3 sm:grid-cols-[repeat(auto-fit,minmax(30rem,1fr))]">
+        <div className="stats shadow">
+          <div className="stat">
+            <div className="stat-title flex items-center pb-1 text-xl text-yellow-500">
+              <CrownIcon className="mr-1 inline-block h-5 w-5" />
+              Leaderboard
+            </div>
+            <ul className="stat-value flex flex-col gap-1 overflow-x-hidden">
+              {highestLevelMembers.map((member, i) => {
+                const level = timeToLevel(member.totalTime);
+                const nextLevelTime = levelToTime(level + 1);
+                const progress = Math.round(
+                  ((member.totalTime - levelToTime(level)) / nextLevelTime) *
+                    100,
+                );
+
+                return (
+                  <li
+                    key={member.id}
+                    className={cn(
+                      'btn h-fit flex-nowrap gap-1 py-1 normal-case',
+                      {
+                        'text-4xl text-yellow-500/90': i === 0,
+                        'text-3xl': i === 1,
+                        'text-2xl': i === 2,
+                      },
+                    )}
+                  >
+                    <span className="inline-block min-w-[2rem]">{i + 1}.</span>{' '}
+                    <Image
+                      src={member.user?.avatarUrl ?? ''}
+                      width={40}
+                      height={40}
+                      className="rounded-full"
+                      alt="profile picture"
+                    />
+                    <span className="overflow-hidden text-ellipsis">
+                      {member.nickname}
+                    </span>
+                    <div
+                      className="radial-progress ml-auto text-[1rem]"
+                      style={{
+                        color: levelToColor(level),
+                        // @ts-ignore
+                        '--value': progress,
+                        '--size': '2.5rem',
+                      }}
+                    >
+                      {level}
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+            <div className="stat-desc">Highest level members</div>
+          </div>
+        </div>
+
+        <div className="stats shadow">
+          <div className="stat">
+            <div className="stat-title flex items-center pb-1 text-xl text-teal-400/80">
+              <MixIcon className="mr-1 inline-block h-5 w-5" />
+              Most common activities
+            </div>
+            <ul className="stat-value flex flex-col gap-1 overflow-x-hidden">
+              {topActivities.map((activity, i) => {
+                return (
+                  <li
+                    key={activity.name}
+                    className={cn(
+                      'btn h-fit flex-nowrap gap-1 py-1 normal-case',
+                      {
+                        'text-4xl text-teal-400/80':
+                          activity.name === topActivities[0]?.name,
+                        'text-3xl': activity.name === topActivities[1]?.name,
+                        'text-2xl': activity.name === topActivities[2]?.name,
+                      },
+                    )}
+                  >
+                    <span className="inline-block min-w-[2rem]">{i + 1}.</span>{' '}
+                    <span className="overflow-hidden text-ellipsis">
+                      {activity.name}
+                    </span>
+                    <span className="ml-auto min-w-[90px] text-[1rem] text-default">
+                      <ClockIcon className="mr-1 inline h-6 w-6" />
+                      {Math.round(activity.time / (1000 * 60 * 60))} hrs
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+            <div className="stat-desc">Activities by highest time spent</div>
+          </div>
+        </div>
+
+        <div className="stats shadow">
+          <div className="stat">
+            <div className="stat-title flex items-center pb-1 text-xl text-red-400/80">
+              <PhoneIcon className="mr-1 inline-block h-5 w-5" />
+              Favourite voice channels
+            </div>
+            <ul className="stat-value flex flex-col gap-1 overflow-x-hidden">
+              {topVoiceChannels.map((channel, i) => {
+                return (
+                  <li
+                    key={channel.name}
+                    className={cn(
+                      'btn h-fit flex-nowrap gap-1 py-1 normal-case',
+                      {
+                        'text-4xl text-red-400/80':
+                          channel.name === topVoiceChannels[0]?.name,
+                        'text-3xl': channel.name === topVoiceChannels[1]?.name,
+                        'text-2xl': channel.name === topVoiceChannels[2]?.name,
+                      },
+                    )}
+                  >
+                    <span className="inline-block min-w-[2rem]">{i + 1}.</span>{' '}
+                    <span className="overflow-hidden text-ellipsis">
+                      {channel.name}
+                    </span>
+                    <span className="ml-auto min-w-[90px] text-[1rem] text-default">
+                      <PhoneIcon className="mr-1 inline h-5 w-5" />
+                      {channel._count.connections}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+            <div className="stat-desc">
+              Voice channels with the most connections
+            </div>
+          </div>
+        </div>
       </div>
     </main>
   );
